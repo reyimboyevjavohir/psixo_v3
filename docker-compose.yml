@@ -20,8 +20,8 @@ services:
       - '4000:4000'
     environment:
       DATABASE_URL: postgresql://postgres:shadow@postgres:5432/psixologik_db
-      JWT_SECRET: psixologik-2025-maxfiy-kalit-kamida-32-belgi
-      GEMINI_API_KEY: your-gemini-api-key
+      JWT_SECRET: psixologik-2025-maxfiy-kalit
+      GEMINI_API_KEY: your-gemini-key
       NODE_ENV: production
       CLIENT_URL: http://localhost:3000
     depends_on:

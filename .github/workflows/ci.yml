@@ -1,0 +1,65 @@
+﻿name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: shadow
+          POSTGRES_DB: psixologik_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Backend install va build
+        run: |
+          cd apps/backend
+          npm install
+          npx prisma generate
+          npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:shadow@localhost:5432/psixologik_db
+          JWT_SECRET: psixologik-2025-maxfiy-kalit
+          GEMINI_API_KEY: test-key
+
+      - name: Frontend install va build
+        run: |
+          cd apps/frontend
+          npm install
+          npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000/api
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker build backend
+        run: docker build -t psixo-backend ./apps/backend
+
+      - name: Docker build frontend
+        run: docker build -t psixo-frontend ./apps/frontend
