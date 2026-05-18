@@ -1,0 +1,41 @@
+﻿version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: psixo_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: shadow
+      POSTGRES_DB: psixologik_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./apps/backend
+    container_name: psixo_backend
+    ports:
+      - '4000:4000'
+    environment:
+      DATABASE_URL: postgresql://postgres:shadow@postgres:5432/psixologik_db
+      JWT_SECRET: psixologik-2025-maxfiy-kalit-kamida-32-belgi
+      GEMINI_API_KEY: your-gemini-api-key
+      NODE_ENV: production
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./apps/frontend
+    container_name: psixo_frontend
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
